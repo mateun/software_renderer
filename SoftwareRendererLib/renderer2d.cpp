@@ -54,6 +54,7 @@ uint32_t* Renderer2D::lockSurface(int& lPitch) {
 		OutputDebugString(L"ERROR >>>>>>>>>>> Failed to lock surface\n\n");
 		exit(1);
 	}
+	_isBackBufferLocked = true;
 	lPitch = ddsd.lPitch;
 	return (uint32_t*) ddsd.lpSurface;
 }
@@ -65,9 +66,16 @@ void Renderer2D::unlockSurface() {
 		OutputDebugString(L"ERROR >>>>>>>>>>> Failed to unlock surface\n\n");
 		exit(1);
 	}
+	_isBackBufferLocked = false;
 }
 void Renderer2D::plotPixel(int x, int y, uint32_t* vidmem, int lPitch, uint32_t color) {
 	vidmem[(y * lPitch >> 2) + x] = color;
+}
+
+void Renderer2D::drawTriangle(Vec3<int> v1, Vec3<int> v2, Vec3<int> v3, uint32_t* vidmem, int lpitch, uint32_t color) {
+	drawLine(v1, v2, vidmem, lpitch, color);
+	drawLine(v1, v3, vidmem, lpitch, color);
+	drawLine(v2, v3, vidmem, lpitch, color);
 }
 
 /**

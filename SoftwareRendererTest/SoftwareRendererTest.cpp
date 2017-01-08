@@ -13,6 +13,11 @@ TEST(graphtypetests, vector_arithmetic_tests) {
 	ASSERT_EQ(result.x(), 5);
 	ASSERT_EQ(result.y(), 4);
 	ASSERT_EQ(result.z(), 0);
+
+	result = from.translate(2, 4, 3);
+	ASSERT_EQ(result.x(), 7);
+	ASSERT_EQ(result.y(), 12);
+	ASSERT_EQ(result.z(), 6);
 }
 
 int _tmain(int argc, _TCHAR* argv[])

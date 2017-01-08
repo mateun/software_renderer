@@ -4,10 +4,12 @@
 #include "stdafx.h"
 #include "SoftwareRenderer.h"
 #include <renderer2d.h>
+#include <renderer3d.h>
+#include <grapfuncs.h>
 
 
 #define MAX_LOADSTRING 100
-#define _RGB32BIT(a,r,g,b) ((b) + ((g) << 8) + ((r) << 16) + ((a) << 24))
+
 
 const int SCREEN_WIDTH = 1024;
 const int SCREEN_HEIGHT = 768;
@@ -24,6 +26,7 @@ BOOL				InitInstance(HINSTANCE, int);
 LRESULT CALLBACK	WndProc(HWND, UINT, WPARAM, LPARAM);
 INT_PTR CALLBACK	About(HWND, UINT, WPARAM, LPARAM);
 Renderer2D* renderer;
+Renderer3D* renderer3D;
 
 
 void doFrame() {
@@ -32,10 +35,19 @@ void doFrame() {
 	renderer->plotPixel(50, 50, vidmem, lPitch, _RGB32BIT(255, 255, 10, 20));
 	renderer->plotPixel(100, 50, vidmem, lPitch, _RGB32BIT(255, 255, 10, 20));
 	renderer->plotPixel(150, 50, vidmem, lPitch, _RGB32BIT(255, 255, 10, 20));
+
+	// all things rendered with the 2D renderer are in pixel, screen coordinates (top left is 0/0, x grows right, y grows down)
 	renderer->drawLine(Vec3<int>(10, 200, 0), Vec3<int>(100, 200, 0), vidmem, lPitch, _RGB32BIT(255, 200, 100, 200));
 	renderer->drawLine(Vec3<int>(10, 200, 0), Vec3<int>(70, 120, 0), vidmem, lPitch, _RGB32BIT(255, 200, 100, 200));
 	renderer->drawLine(Vec3<int>(70, 120, 0), Vec3<int>(100, 200, 0), vidmem, lPitch, _RGB32BIT(255, 200, 100, 200));
+
 	renderer->unlockSurface();
+
+	// All 3D rendered things have a different coordinate system: x goes from -1 to 1 (left to right), and y from 1 to -y (top to bottom))
+	Triangle<float> tri(Vec3<float>(-0.5f, 0.0f, 2.0f), Vec3<float>(0.5f, 0.0f, 2.0f), Vec3<float>(0.0f, 0.5f, 2.0f));
+	renderer3D->renderTransformedTriangle(tri, _RGB32BIT(255, 255, 255, 255));
+
+	
 	renderer->Flip();
 
 }
@@ -67,8 +79,8 @@ int APIENTRY _tWinMain(_In_ HINSTANCE hInstance,
 	hAccelTable = LoadAccelerators(hInstance, MAKEINTRESOURCE(IDC_SOFTWARERENDERER));
 
 	renderer = new Renderer2D(hwnd, SCREEN_WIDTH, SCREEN_HEIGHT);
+	renderer3D = new Renderer3D(*renderer);
 	
-
 
 	// Main message loop:
 	while (true)
