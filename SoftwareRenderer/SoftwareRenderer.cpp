@@ -32,6 +32,9 @@ void doFrame() {
 	renderer->plotPixel(50, 50, vidmem, lPitch, _RGB32BIT(255, 255, 10, 20));
 	renderer->plotPixel(100, 50, vidmem, lPitch, _RGB32BIT(255, 255, 10, 20));
 	renderer->plotPixel(150, 50, vidmem, lPitch, _RGB32BIT(255, 255, 10, 20));
+	renderer->drawLine(Vec3<int>(10, 200, 0), Vec3<int>(100, 200, 0), vidmem, lPitch, _RGB32BIT(255, 200, 100, 200));
+	renderer->drawLine(Vec3<int>(10, 200, 0), Vec3<int>(70, 120, 0), vidmem, lPitch, _RGB32BIT(255, 200, 100, 200));
+	renderer->drawLine(Vec3<int>(70, 120, 0), Vec3<int>(100, 200, 0), vidmem, lPitch, _RGB32BIT(255, 200, 100, 200));
 	renderer->unlockSurface();
 	renderer->Flip();
 
