@@ -5,10 +5,27 @@
 #include "graphtypes.h"
 #include <stdexcpt.h>
 #include "grapfuncs.h"
+#include <glm\glm.hpp>
+#include <glm\gtc\matrix_transform.hpp>
 
 class Renderer3D {
 public:
 	Renderer3D(Renderer2D& renderer2D);
+
+	template<typename T>
+	Triangle<T> transformTri(Triangle<T> inTri, glm::mat4x4 transformation) {
+		Triangle<T> outputTri;
+		for (int i = 0; i < 3; i++) {
+			glm::vec4 pos = glm::vec4(inTri.vecs[i].x(), inTri.vecs[i].y(), inTri.vecs[i].z(), 1.0f);
+			glm::vec4 transformed = transformation * pos;
+			outputTri.vecs[i].setX(transformed.x);
+			outputTri.vecs[i].setY(transformed.y);
+			outputTri.vecs[i].setZ(transformed.z);
+		}
+
+		return outputTri;
+		
+	}
 
 	// We assume the triangle is already transformed 
 	// into world and view space
@@ -24,8 +41,6 @@ public:
 			sprintf_s(buf, "vec%d x/y: %f/%f\n",i, transformedTri.vecs[i].x(), transformedTri.vecs[i].y());
 			OutputDebugStringA(buf);
 		}
-
-		
 
 		if (_renderer2D.GetIsBackBufferLocked() == true) {
 			//throw new std::runtime_error("Backbuffer was locked! Only do calls on the 3D renderer when the 2D renderer is not in locked state!");

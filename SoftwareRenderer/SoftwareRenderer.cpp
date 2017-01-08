@@ -6,7 +6,8 @@
 #include <renderer2d.h>
 #include <renderer3d.h>
 #include <grapfuncs.h>
-
+#include <glm\glm.hpp>
+#include <glm/gtc/matrix_transform.hpp>
 
 #define MAX_LOADSTRING 100
 
@@ -28,6 +29,7 @@ INT_PTR CALLBACK	About(HWND, UINT, WPARAM, LPARAM);
 Renderer2D* renderer;
 Renderer3D* renderer3D;
 
+float angle = 0;
 
 void doFrame() {
 	int lPitch;
@@ -44,9 +46,17 @@ void doFrame() {
 	renderer->unlockSurface();
 
 	// All 3D rendered things have a different coordinate system: x goes from -1 to 1 (left to right), and y from 1 to -y (top to bottom))
-	Triangle<float> tri(Vec3<float>(-0.5f, 0.0f, 2.0f), Vec3<float>(0.5f, 0.0f, 2.0f), Vec3<float>(0.0f, 0.5f, 2.0f));
+	Triangle<float> tri(Vec3<float>(-0.5f, -0.5f, 2.0f), Vec3<float>(0.5f, -0.5f, 2.0f), Vec3<float>(0.0f, 0.5f, 2.0f));
+	
+	glm::mat4x4 translation = glm::translate(glm::mat4x4(1), glm::vec3(0.75, -0.55, 0));
+	glm::mat4x4 rotation = glm::rotate(glm::mat4x4(1), angle, glm::vec3(0, 0, 1));
+	tri = renderer3D->transformTri(tri, rotation);
+	renderer3D->renderTransformedTriangle(tri, _RGB32BIT(255, 200, 100, 100));
+	angle += 9.2f;
+	rotation = glm::rotate(glm::mat4x4(1), angle, glm::vec3(0, 0, 1));
+	tri = renderer3D->transformTri(tri, rotation);
 	renderer3D->renderTransformedTriangle(tri, _RGB32BIT(255, 255, 255, 255));
-
+	
 	
 	renderer->Flip();
 

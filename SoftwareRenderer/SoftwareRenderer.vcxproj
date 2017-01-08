@@ -41,7 +41,7 @@
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <LinkIncremental>true</LinkIncremental>
-    <IncludePath>C:\Users\martin\Documents\Visual Studio 2013\Projects\SoftwareRenderer\SoftwareRendererLib;$(IncludePath)</IncludePath>
+    <IncludePath>C:\Users\Public\Documents\Programming\Libraries\glm-0.9.4.6\glm;C:\Users\martin\Documents\Visual Studio 2013\Projects\SoftwareRenderer\SoftwareRendererLib;$(IncludePath)</IncludePath>
     <LibraryPath>C:\Users\martin\Documents\Visual Studio 2013\Projects\SoftwareRenderer\Debug;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
