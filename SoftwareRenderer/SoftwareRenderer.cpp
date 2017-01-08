@@ -3,7 +3,8 @@
 
 #include "stdafx.h"
 #include "SoftwareRenderer.h"
-#include <ddraw.h>
+#include <renderer2d.h>
+
 
 #define MAX_LOADSTRING 100
 #define _RGB32BIT(a,r,g,b) ((b) + ((g) << 8) + ((r) << 16) + ((a) << 24))
@@ -22,131 +23,18 @@ ATOM				MyRegisterClass(HINSTANCE hInstance);
 BOOL				InitInstance(HINSTANCE, int);
 LRESULT CALLBACK	WndProc(HWND, UINT, WPARAM, LPARAM);
 INT_PTR CALLBACK	About(HWND, UINT, WPARAM, LPARAM);
-LPDIRECTDRAW lpdd = NULL;
-LPDIRECTDRAW4 lpdd4 = NULL;
-PALETTEENTRY palette[256];
-LPDIRECTDRAWPALETTE lpddpal = NULL;
-LPDIRECTDRAWSURFACE4 lpddsprimary = NULL;
+Renderer2D* renderer;
 
-BOOL initGraphics(HWND hwnd) {
-	if (FAILED(DirectDrawCreate(NULL, &lpdd, NULL))){
-		OutputDebugString(L"Error creating DDraw object\n");
-		exit(1);
-	}
-
-	if (FAILED(lpdd->QueryInterface(IID_IDirectDraw4, (LPVOID*)&lpdd4))) {
-		OutputDebugString(L"Error creating DD4 object\n");
-		exit(1);
-	}
-
-	lpdd->Release();
-	lpdd = NULL;
-
-	if (FAILED(lpdd4->SetCooperativeLevel(hwnd, DDSCL_FULLSCREEN | DDSCL_EXCLUSIVE | DDSCL_ALLOWREBOOT | DDSCL_ALLOWMODEX))) {
-		OutputDebugString(L"Error setting cooperative level\n");
-		exit(1);
-	}
-	
-	// Setting palettized 8 bit modes does not work :(
-	if (FAILED(lpdd4->SetDisplayMode(SCREEN_WIDTH, SCREEN_HEIGHT, 32, 0, 0))){
-		OutputDebugString(L"Error setting display mode\n");
-		exit(1);
-	}
-
-}
-
-void shutDownGraphics() {
-
-	if (lpddsprimary)
-	{
-		lpddsprimary->Release();
-		lpddsprimary = NULL;
-	} // end if
-
-	if (lpdd4) {
-		lpdd4->Release();
-		lpdd4 = NULL;
-	}
-}
-
-void initPalette() {
-	for (int color = 1; color < 256; color++) {
-		palette[color].peRed = rand() % 256;
-		palette[color].peGreen = rand() % 256;
-		palette[color].peBlue = rand() % 256;
-		palette[color].peFlags = PC_NOCOLLAPSE;
-	}
-
-	palette[0].peRed = 0;
-	palette[0].peGreen = 0;
-	palette[0].peBlue = 0;
-	palette[0].peFlags = PC_NOCOLLAPSE;
-
-	palette[255].peRed = 255;
-	palette[255].peGreen = 255;
-	palette[255].peBlue = 255;
-	palette[255].peFlags = PC_NOCOLLAPSE;
-
-	if (FAILED(lpdd4->CreatePalette(DDPCAPS_8BIT | DDPCAPS_ALLOW256 | DDPCAPS_INITIALIZE,
-		palette,
-		&lpddpal,
-		NULL))) {
-		OutputDebugString(L"ERROR >>>>>>>>>>> Failed to create palette\n\n");
-		exit(1);
-	}
-}
-
-void initPrimarySurface() {
-	DDSURFACEDESC2 ddsd;
-	ZeroMemory(&ddsd, sizeof(ddsd));
-
-	ddsd.dwSize = sizeof(ddsd);
-	ddsd.dwFlags = DDSD_CAPS;
-	ddsd.ddsCaps.dwCaps = DDSCAPS_PRIMARYSURFACE;
-	if (FAILED(lpdd4->CreateSurface(&ddsd, &lpddsprimary, NULL))) {
-		OutputDebugString(L"ERROR >>>>>>>>>>> Failed to create primary surface\n\n");
-		exit(1);
-	}
-}
-
-void attachPalette(LPDIRECTDRAWPALETTE palette) {
-	// Attach the palette
-	if (FAILED((lpddsprimary->SetPalette(palette)))) {
-		OutputDebugString(L"ERROR >>>>>>>>>>> Failed to attach palette to primary surface\n\n");
-		exit(1);
-	}
-}
-
-DDSURFACEDESC2 lockSurface(LPDIRECTDRAWSURFACE4 surface) {
-	DDSURFACEDESC2 ddsd;
-	ZeroMemory(&ddsd, sizeof(ddsd));
-	ddsd.dwSize = sizeof(ddsd);
-	if (FAILED(surface->Lock(NULL, &ddsd, DDLOCK_SURFACEMEMORYPTR | DDLOCK_WAIT, NULL))) {
-		OutputDebugString(L"ERROR >>>>>>>>>>> Failed to lock surface\n\n");
-		exit(1);
-	}
-	return ddsd;
-}
-
-void unlockSurface(LPDIRECTDRAWSURFACE4 surface) {
-	if (FAILED((surface->Unlock(NULL)))) {
-		OutputDebugString(L"ERROR >>>>>>>>>>> Failed to unlock surface\n\n");
-		exit(1);
-	}
-}
-
-void plotPixel8(int x, int y, UCHAR *buffer, int memPitch, UCHAR color) {
-	buffer[(y*memPitch) + x] = color;
-}
-
-void plotPixel32(int x, int y, UINT32 *buffer, int memPitch, UINT32 color) {
-	buffer[(y * memPitch >> 2) + x] = color;
-}
 
 void doFrame() {
-	DDSURFACEDESC2 ddsd = lockSurface(lpddsprimary);
-	plotPixel32(50, 50, (UINT32*) ddsd.lpSurface, ddsd.lPitch, _RGB32BIT(255, 255, 10, 20));
-	unlockSurface(lpddsprimary);
+	int lPitch;
+	uint32_t* vidmem = renderer->lockSurface(lPitch);
+	renderer->plotPixel(50, 50, vidmem, lPitch, _RGB32BIT(255, 255, 10, 20));
+	renderer->plotPixel(100, 50, vidmem, lPitch, _RGB32BIT(255, 255, 10, 20));
+	renderer->plotPixel(150, 50, vidmem, lPitch, _RGB32BIT(255, 255, 10, 20));
+	renderer->unlockSurface();
+	renderer->Flip();
+
 }
 
 
@@ -175,9 +63,8 @@ int APIENTRY _tWinMain(_In_ HINSTANCE hInstance,
 
 	hAccelTable = LoadAccelerators(hInstance, MAKEINTRESOURCE(IDC_SOFTWARERENDERER));
 
-	initGraphics(hwnd);
-	//initPalette();
-	initPrimarySurface();
+	renderer = new Renderer2D(hwnd, SCREEN_WIDTH, SCREEN_HEIGHT);
+	
 
 
 	// Main message loop:
@@ -196,9 +83,7 @@ int APIENTRY _tWinMain(_In_ HINSTANCE hInstance,
 
 		doFrame();
 	}
-
-	shutDownGraphics();
-
+	delete(renderer);
 	return (int) msg.wParam;
 }
 
